@@ -38,6 +38,8 @@ class Controller:
         :return: 注册成功返回True，否则返回False
         """
         register_msg = self.conn.recv(1024 * 1024)
+        if register_msg == b"CLIENT CANCEL":
+            return False
         register_msg = register_msg.decode().split(" ", 1)
         if len(register_msg) != 2:
             self.conn.send(b"CLIENT MSG ERROR")

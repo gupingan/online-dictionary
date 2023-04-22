@@ -1,3 +1,4 @@
+import re
 import sys
 from socket import *
 from model import *
@@ -39,3 +40,33 @@ class DictClient:
     def request_login_or_register(self):
         self.sock.send(str(self.user).encode())
         return self.get_data()
+
+
+class Tools:
+    def __init__(self):
+        pass
+
+    @staticmethod
+    def __check_username(username):
+        """
+         检查用户名是否符合要求
+         """
+        pattern = r'^[\u4e00-\u9fa5a-zA-Z0-9]{2,32}$'
+        return bool(re.match(pattern, username))
+
+    @staticmethod
+    def __check_password(password):
+        """
+        检查密码是否符合要求
+        """
+        pattern = r'^[\u4e00-\u9fa5a-zA-Z0-9!@#$%^&*()_+|~-]{4,32}$'
+        return bool(re.match(pattern, password))
+
+    @staticmethod
+    def check_credentials(username, password):
+        """
+        检查用户名和密码是否符合要求
+        """
+        if ' ' in username or ' ' in password:
+            return False
+        return Tools.__check_username(username) and Tools.__check_password(password)

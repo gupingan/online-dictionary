@@ -1,6 +1,6 @@
 import sys
 from model import User
-from controller import DictClient
+from controller import *
 
 
 class View:
@@ -28,7 +28,6 @@ class View:
                         self.__call_login()
                     else:
                         self.__sock.execute("CLIENT", "CANCEL")
-                        continue
             elif select == "2":
                 self.__sock.execute("1", "2")
                 if self.__sock.get_data() == "OK":
@@ -36,7 +35,6 @@ class View:
                         self.__call_register()
                     else:
                         self.__sock.execute("CLIENT", "CANCEL")
-                        continue
             elif select == "3":
                 self.__sock.execute("1", "3")
                 self.__exit()
@@ -86,11 +84,8 @@ class View:
         """
         name = input("用户名：")
         pwd = input("密  码：")
-        if " " in name or not 2 <= len(name) <= 32:
-            print("用户名不能包含空格且长度介于2~32\n")
-            return False
-        if " " in pwd or not 4 <= len(pwd) <= 32:
-            print("密码不能包含空格且长度介于2~32\n")
+        if not Tools.check_credentials(name, pwd):
+            print("用户名(2~32位)或者密码（4~32位）不规范，不能包含特殊符号和空格，请重新注册")
             return False
         self.__user.load_user(name, pwd)
         return True
