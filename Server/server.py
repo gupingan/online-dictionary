@@ -38,7 +38,9 @@ class DictServer:
             if self.sql.query_setting("词典是否加载") == "否":
                 self.sql.source(self.sql.query_setting("词典路径"))  # 未加载词典时，会从对应路径加载词典文件
         except Exception as e:
-            if e.args[0] == 1051:
+            if e.args[0] == 1050:
+                print("请将参数init设为False")
+            elif e.args[0] == 1051:
                 print("请将参数drop设为False")
             elif e.args[0] == 1146:
                 print("请将参数init设为True")

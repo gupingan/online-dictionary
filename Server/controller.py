@@ -134,36 +134,36 @@ class SQLtool:
         创建配置表settings、词典表words、历史记录表history、用户表users
         :return:
         """
-        print("初始化--创建设置表")
         sql = "create table settings(" \
               "id int primary key auto_increment," \
               "name varchar(32) not null," \
               "setting varchar(128) default '');"
         self.cur.execute(sql)
-        print("初始化--加载配置")
+        print("初始化--创建设置表")
         self.insert_setting("词典路径", os.path.join(os.path.dirname(__file__), self.dict_path))
         self.insert_setting("词典是否加载", "否")
-        print("初始化--创建词典表")
+        print("初始化--加载配置")
         sql = "create table words(" \
               "word varchar(32) not null collate utf8mb4_bin default ''," \
               "translation varchar(512) default null" \
               ") engine=InnoDB default charset=utf8;"
         self.cur.execute(sql)
-        print("初始化--创建历史查询表")
+        print("初始化--创建词典表")
         sql = "create table history(" \
               "id int primary key auto_increment," \
               "name varchar(32) not null collate utf8mb4_bin default ''," \
-              "word varchar(32) default null," \
-              "time datetime default null" \
+              "word varchar(32) collate utf8mb4_bin default null," \
+              "time datetime default now()" \
               ") engine=InnoDB default charset=utf8;"
         self.cur.execute(sql)
-        print("初始化--创建用户表")
+        print("初始化--创建历史查询表")
         sql = "create table users(" \
               "name varchar(32) primary key collate utf8mb4_bin not null," \
               "pwd varchar(128) default '');"
         self.cur.execute(sql)
+        print("初始化--创建用户表")
         self.db.commit()
-        print("初始化完成，请在服务端server.py中run方法中注释该方法的调用")
+        print("初始化完成，请在服务端run.py中将init和drop均改为False")
 
     def close(self) -> None:
         """
@@ -224,7 +224,7 @@ class SQLtool:
         :param name: 设置表settings中的name字段，比如“词典路径”
         :return: str 设置表settings中的setting字段，比如"/home/.../EnWords.sql"
         """
-        sql = "select setting from settings where binary name = %s;"
+        sql = "select setting from settings where name = %s;"
         self.cur.execute(sql, (name,))
         res = self.cur.fetchone()
         return res[0]
@@ -235,7 +235,7 @@ class SQLtool:
         :param word: 单词表words中的word字段，即单词，表中建立了索引，增加了查询速度
         :return: translation[0] or "未查找到该单词" 单词对应的解释
         """
-        sql = "select translation from words where binary word = %s"
+        sql = "select translation from words where word = %s"
         try:
             self.cur.execute(sql, (word,))
             translation = self.cur.fetchone()
@@ -255,9 +255,11 @@ class SQLtool:
         if history and len(history) == 15:
             sql = "delete from history where id = (select id from (select min(id) as id from history) as h );"
             self.cur.execute(sql)
-        time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        sql = "insert into history (name,word,time) values (%s,%s,%s);"
-        self.cur.execute(sql, (name, word, time))
+        # time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        # sql = "insert into history (name,word,time) values (%s,%s,%s);"
+        sql = "insert into history (name,word) values (%s,%s);"
+        # self.cur.execute(sql, (name, word, time))
+        self.cur.execute(sql, (name, word))
         self.db.commit()
 
     def query_history(self, name: str) -> list:
@@ -266,7 +268,7 @@ class SQLtool:
         :param name: 历史查询记录表history的name字段，即用户名
         :return: [(time, name, word)...] or None 历史查询记录表history中的对应name的所有记录（根据id倒序排列）
         """
-        sql = "select time,name,word from history where binary name = %s order by id desc;"
+        sql = "select time,name,word from history where name = %s order by id desc;"
         self.cur.execute(sql, (name,))
         res = self.cur.fetchall()
         return res
@@ -278,7 +280,7 @@ class SQLtool:
         :param pwd: 密码
         :return: bool 注册失败与否
         """
-        sql = "select name from users where binary name = %s;"
+        sql = "select name from users where name = %s;"
         self.cur.execute(sql, (name,))
         if self.cur.fetchone():
             return False
@@ -288,7 +290,7 @@ class SQLtool:
         return True
 
     def delete_user(self, name) -> bool:
-        sql = "select name from users where binary name = %s;"
+        sql = "select name from users where name = %s;"
         self.cur.execute(sql, (name,))
         if not self.cur.fetchone():
             print(f"用户{name}不存在")
@@ -305,7 +307,7 @@ class SQLtool:
         :param name: 用户表users中的name字段，即用户名
         :return: (name, pwd) or None 用户表users中的对应name的记录
         """
-        sql = "select name, pwd from users where binary name = %s;"
+        sql = "select name, pwd from users where name = %s;"
         self.cur.execute(sql, (name,))
         res = self.cur.fetchone()
         return res
