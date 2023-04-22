@@ -18,8 +18,8 @@ Online Dictionary 是一款基于 TCP 协议和 MySql 数据库使用 Python 开
 - Python高级
     - 异常处理
     - 内置高阶函数（max、min等）
-    - 文件处理等等
-- SQL基础语法
+    - 文件处理、正则表达式等等
+- MYSQL数据库
     - 建表
     - 增删改查等等
 - 网络并发编程
