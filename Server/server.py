@@ -27,16 +27,26 @@ class DictServer:
         :param del_users: 服务端手动删除用户，可批量删除
         :return:
         """
-        if del_users:
-            for user in del_users:
-                self.sql.delete_user(user)
-        if self.drop:
-            self.sql.drop()  # 用于清空服务所有对应的表，然后重新初始化，实例化server时，关键传参drop为True即可
-        if self.init:
-            self.sql.init()  # 用于初始化，实例化server时，关键传参init为True即可
-        if self.sql.query_setting("词典是否加载") == "否":
-            self.sql.source(self.sql.query_setting("词典路径"))  # 未加载词典时，会从对应路径加载词典文件
-        self.sql.close()
+        try:
+            if del_users:
+                for user in del_users:
+                    self.sql.delete_user(user)
+            if self.drop:
+                self.sql.drop()  # 用于清空服务所有对应的表，然后重新初始化，实例化server时，关键传参drop为True即可
+            if self.init:
+                self.sql.init()  # 用于初始化，实例化server时，关键传参init为True即可
+            if self.sql.query_setting("词典是否加载") == "否":
+                self.sql.source(self.sql.query_setting("词典路径"))  # 未加载词典时，会从对应路径加载词典文件
+        except Exception as e:
+            if e.args[0] == 1051:
+                print("请将参数drop设为False")
+            elif e.args[0] == 1146:
+                print("请将参数init设为True")
+            else:
+                print(e.args)
+            return
+        finally:
+            self.sql.close()
         print("服务端：开始正常运行")
         while True:
             try:

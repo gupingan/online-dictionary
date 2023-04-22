@@ -145,21 +145,21 @@ class SQLtool:
         self.insert_setting("词典是否加载", "否")
         print("初始化--创建词典表")
         sql = "create table words(" \
-              "word varchar(32) not null default ''," \
+              "word varchar(32) not null collate utf8mb4_bin default ''," \
               "translation varchar(512) default null" \
               ") engine=InnoDB default charset=utf8;"
         self.cur.execute(sql)
         print("初始化--创建历史查询表")
         sql = "create table history(" \
               "id int primary key auto_increment," \
-              "name varchar(32) not null default ''," \
+              "name varchar(32) not null collate utf8mb4_bin default ''," \
               "word varchar(32) default null," \
               "time datetime default null" \
               ") engine=InnoDB default charset=utf8;"
         self.cur.execute(sql)
         print("初始化--创建用户表")
         sql = "create table users(" \
-              "name varchar(32) primary key not null," \
+              "name varchar(32) primary key collate utf8mb4_bin not null," \
               "pwd varchar(128) default '');"
         self.cur.execute(sql)
         self.db.commit()
@@ -224,7 +224,7 @@ class SQLtool:
         :param name: 设置表settings中的name字段，比如“词典路径”
         :return: str 设置表settings中的setting字段，比如"/home/.../EnWords.sql"
         """
-        sql = "select setting from settings where name = %s;"
+        sql = "select setting from settings where binary name = %s;"
         self.cur.execute(sql, (name,))
         res = self.cur.fetchone()
         return res[0]
@@ -235,7 +235,7 @@ class SQLtool:
         :param word: 单词表words中的word字段，即单词，表中建立了索引，增加了查询速度
         :return: translation[0] or "未查找到该单词" 单词对应的解释
         """
-        sql = "select translation from words where word = %s"
+        sql = "select translation from words where binary word = %s"
         try:
             self.cur.execute(sql, (word,))
             translation = self.cur.fetchone()
@@ -266,7 +266,7 @@ class SQLtool:
         :param name: 历史查询记录表history的name字段，即用户名
         :return: [(time, name, word)...] or None 历史查询记录表history中的对应name的所有记录（根据id倒序排列）
         """
-        sql = "select time,name,word from history where name = %s order by id desc;"
+        sql = "select time,name,word from history where binary name = %s order by id desc;"
         self.cur.execute(sql, (name,))
         res = self.cur.fetchall()
         return res
@@ -278,7 +278,7 @@ class SQLtool:
         :param pwd: 密码
         :return: bool 注册失败与否
         """
-        sql = "select name from users where name = %s;"
+        sql = "select name from users where binary name = %s;"
         self.cur.execute(sql, (name,))
         if self.cur.fetchone():
             return False
@@ -288,12 +288,12 @@ class SQLtool:
         return True
 
     def delete_user(self, name) -> bool:
-        sql = "select name from users where name = %s;"
+        sql = "select name from users where binary name = %s;"
         self.cur.execute(sql, (name,))
         if not self.cur.fetchone():
             print(f"用户{name}不存在")
             return False
-        sql = "delete from users where name = %s;"
+        sql = "delete from users where binary name = %s;"
         self.cur.execute(sql, (name, ))
         self.db.commit()
         print(f"用户{name}被删除")
@@ -305,7 +305,7 @@ class SQLtool:
         :param name: 用户表users中的name字段，即用户名
         :return: (name, pwd) or None 用户表users中的对应name的记录
         """
-        sql = "select name, pwd from users where name = %s;"
+        sql = "select name, pwd from users where binary name = %s;"
         self.cur.execute(sql, (name,))
         res = self.cur.fetchone()
         return res
